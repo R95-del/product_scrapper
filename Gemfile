@@ -35,8 +35,10 @@ gem "bootsnap", require: false
 # gem "image_processing", "~> 1.2"
 #
 gem "nokogiri"         # For web scraping
-gem "bootstrap"        # For styling
 gem "jquery-rails"     # For Bootstrap JavaScript features
+gem "sassc-rails"      # For Sass processing
+gem "bootstrap", "~> 5.3.2"  # Bootstrap CSS framework
+gem "mechanize"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
