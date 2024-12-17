@@ -1,26 +1,40 @@
-require 'mechanize'
+# frozen_string_literal: true
 
+require "mechanize"
+
+# Service to scrape product information from Flipkart
 class WebScraperService
-  USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/119.0.0.0 Safari/537.36'
+  USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/119.0.0.0 Safari/537.36"
+
   DEFAULT_HEADERS = {
-    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language' => 'en-US,en;q=0.5',
-    'Cache-Control' => 'no-cache',
-    'Pragma' => 'no-cache',
-    'Referer' => 'https://www.flipkart.com'
+    "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language" => "en-US,en;q=0.5",
+    "Cache-Control" => "no-cache",
+    "Pragma" => "no-cache",
+    "Referer" => "https://www.flipkart.com"
   }.freeze
 
   SELECTORS = {
     title: [
-      'span.B_NuCI', 'h1.yhB1nd', '.B_NuCI', '._35KyD6', '.title', 'h1',
+      "span.B_NuCI",
+      "h1.yhB1nd",
+      ".B_NuCI",
+      "._35KyD6",
+      ".title",
+      "h1",
       'meta[property="og:title"]'
     ].freeze,
     description: [
-      'div._1mXcCf p', 'div._1mXcCf', '.product-description',
-      'meta[name="description"]', 'meta[property="og:description"]'
+      "div._1mXcCf p",
+      "div._1mXcCf",
+      ".product-description",
+      'meta[name="description"]',
+      'meta[property="og:description"]'
     ].freeze,
     category: [
-      'div._1MR4o5 a', 'div[class*="_1MR4o5"] a', 'div._3GIHBu a',
+      "div._1MR4o5 a",
+      'div[class*="_1MR4o5"] a',
+      "div._3GIHBu a",
       'div[class*="breadcrumb"] a'
     ].freeze
   }.freeze
@@ -53,7 +67,7 @@ class WebScraperService
       category: find_category(html),
       url: @url
     }
-  rescue => e
+  rescue StandardError => e
     handle_error(e)
   end
 
@@ -70,6 +84,7 @@ class WebScraperService
   def find_title(doc)
     title = extract_content(doc, :title)
     raise ScrapingError, "Title not found" if title.blank?
+
     title
   end
 
@@ -84,7 +99,7 @@ class WebScraperService
     if price_text
       clean_and_convert_price(price_text)
     else
-      puts "No price found, defaulting to 0.0"
+      Rails.logger.info("No price found, defaulting to 0.0")
       0.0
     end
   end
@@ -93,20 +108,18 @@ class WebScraperService
     breadcrumbs = extract_breadcrumbs(doc)
     category = breadcrumbs.last
 
-    if category.blank?
-      @url.split('/')[3]&.capitalize || "Uncategorized"
-    else
-      category
-    end
+    return category if category.present?
+
+    @url.split("/")[3]&.capitalize || "Uncategorized"
   end
 
   def extract_content(doc, type)
     SELECTORS[type].each do |selector|
-      if selector.start_with?('meta')
-        content = doc.at_css(selector)&.attr('content')
-      else
-        content = doc.css(selector).text.strip
-      end
+      content = if selector.start_with?("meta")
+                 doc.at_css(selector)&.attr("content")
+               else
+                 doc.css(selector).text.strip
+               end
       return content if content.present?
     end
     nil
@@ -114,36 +127,36 @@ class WebScraperService
 
   def extract_price_from_text(text)
     PRICE_PATTERNS.each do |pattern|
-      if text =~ pattern
-        puts "Found price from text pattern: #{$1}"
-        return $1
-      end
+      next unless text =~ pattern
+
+      Rails.logger.info("Found price from text pattern: #{$1}")
+      return Regexp.last_match(1)
     end
     nil
   end
 
   def clean_and_convert_price(price_text)
-    cleaned_price = price_text.gsub(/[^\d.]/, '')
+    cleaned_price = price_text.gsub(/[^\d.]/, "")
     price = cleaned_price.to_f
-    puts "Converted price: #{price}"
+    Rails.logger.info("Converted price: #{price}")
     price.positive? ? price : 0.0
   end
 
   def extract_breadcrumbs(doc)
     SELECTORS[:category].each do |selector|
       elements = doc.css(selector)
-      if elements.any?
-        breadcrumbs = elements.map(&:text).map(&:strip)
-        puts "Found breadcrumbs: #{breadcrumbs.join(' > ')}"
-        return breadcrumbs
-      end
+      next unless elements.any?
+
+      breadcrumbs = elements.map(&:text).map(&:strip)
+      Rails.logger.info("Found breadcrumbs: #{breadcrumbs.join(" > ")}")
+      return breadcrumbs
     end
     []
   end
 
   def handle_error(error)
-    puts "Error: #{error.message}"
-    puts error.backtrace
+    Rails.logger.error("Error: #{error.message}")
+    Rails.logger.error(error.backtrace.join("\n"))
     raise ScrapingError, "Failed to scrape the product: #{error.message}"
   end
 end
