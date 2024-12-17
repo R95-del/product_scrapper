@@ -1,2 +1,44 @@
-<h1>Products#new</h1>
-<p>Find me in app/views/products/new.html.erb</p>
+<div class="row mb-4">
+  <div class="col">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to 'Products', products_path %></li>
+        <li class="breadcrumb-item active">Add New Product</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title mb-4">Add New Product</h2>
+
+        <%= form_for @product do |f| %>
+          <% if @product.errors.any? %>
+            <div class="alert alert-danger">
+              <h4><%= pluralize(@product.errors.count, "error") %> prohibited this product from being saved:</h4>
+              <ul>
+                <% @product.errors.full_messages.each do |msg| %>
+                  <li><%= msg %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="mb-3">
+            <%= f.label :url, "Product URL", class: "form-label" %>
+            <%= f.text_field :url, class: "form-control form-control-lg" %>
+            <div class="form-text">Enter the URL of the product you want to scrape</div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <%= f.submit "Scrape Product", class: "btn btn-primary btn-lg" %>
+            <%= link_to 'Cancel', products_path, class: 'btn btn-outline-secondary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,2 +1,52 @@
-<h1>Products#index</h1>
-<p>Find me in app/views/products/index.html.erb</p>
+<div class="row mb-4">
+  <div class="col">
+    <h1>Products</h1>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <%= form_tag products_path, method: :get, class: 'row g-3' do %>
+      <div class="col-sm-8">
+        <%= text_field_tag :search, params[:search], class: 'form-control form-control-lg', placeholder: 'Search products...' %>
+      </div>
+      <div class="col-sm-4">
+        <%= submit_tag "Search", class: 'btn btn-primary btn-lg w-100' %>
+      </div>
+    <% end %>
+  </div>
+  <div class="col-md-4 text-end">
+    <%= link_to 'Add New Product', new_product_path, class: 'btn btn-success btn-lg' %>
+  </div>
+</div>
+
+<div class="row">
+  <% @products.each do |product| %>
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title text-truncate" title="<%= product.title %>">
+            <%= product.title %>
+          </h5>
+          <h6 class="card-subtitle mb-2 text-muted">
+            <%= number_to_currency(product.price) %>
+          </h6>
+          <p class="card-text"><%= truncate(product.description, length: 150) %></p>
+
+          <!-- Add word-wrap and max-width to the category badge -->
+          <div class="badge bg-secondary text-wrap" style="max-width: 100%; word-break: break-word;">
+            <%= product.category %>
+          </div>
+        </div>
+        <div class="card-footer bg-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <%= link_to 'View Details', product_path(product), class: 'btn btn-primary btn-sm' %>
+            <small class="text-muted">
+              Last updated: <%= time_ago_in_words(product.last_scraped_at) %> ago
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

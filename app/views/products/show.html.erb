@@ -1,2 +1,46 @@
-<h1>Products#show</h1>
-<p>Find me in app/views/products/show.html.erb</p>
+<div class="row mb-4">
+  <div class="col">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to 'Products', products_path %></li>
+        <li class="breadcrumb-item active" aria-current="page">Product Details</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title mb-4"><%= @product.title %></h1>
+
+    <div class="row">
+      <div class="col-md-8">
+        <div class="mb-4">
+          <h5 class="text-muted">Description</h5>
+          <p class="lead"><%= @product.description %></p>
+        </div>
+
+        <div class="mb-4">
+          <h5 class="text-muted">Category</h5>
+          <div class="badge bg-secondary"><%= @product.category %></div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="text-center mb-3">
+                ₹<%= number_with_precision(@product.price * 82, precision: 2, delimiter: ',') %>
+              </h3>
+            <p class="text-muted text-center">Last updated: <%= time_ago_in_words(@product.last_scraped_at) %> ago</p>
+            <%= link_to 'Visit Original', @product.url, class: 'btn btn-primary w-100', target: '_blank' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4">
+  <%= link_to 'Back to Products', products_path, class: 'btn btn-secondary' %>
+</div>
