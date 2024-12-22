@@ -1,39 +1,47 @@
-<div class="row mb-4">
-  <div class="col">
-    <h1>Products</h1>
-  </div>
-</div>
+<div class="container mt-4">
+  <h1>Products</h1>
 
-<div class="row mb-4">
-  <div class="col-md-8">
-    <%= form_tag products_path, method: :get, class: 'row g-3' do %>
-      <div class="col-sm-8">
-        <%= text_field_tag :search, params[:search], class: 'form-control form-control-lg', placeholder: 'Search products...' %>
-      </div>
-      <div class="col-sm-4">
-        <%= submit_tag "Search", class: 'btn btn-primary btn-lg w-100' %>
-      </div>
-    <% end %>
+  <div class="row mb-4">
+    <!-- Search Form -->
+    <div class="col-md-6">
+      <%= form_tag products_path, method: :get, class: 'd-flex gap-2' do %>
+        <%= text_field_tag :search, params[:search], class: 'form-control', placeholder: 'Search products...' %>
+        <%= submit_tag "Search", class: 'btn btn-primary px-4' %>
+      <% end %>
+    </div>
   </div>
-  <div class="col-md-4 text-end">
-    <%= link_to 'Add New Product', new_product_path, class: 'btn btn-success btn-lg' %>
-  </div>
-</div>
 
-<% if @products.any? %>
+  <!-- Import Excel Form -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <%= form_tag import_products_path, multipart: true, class: "d-flex gap-2", enctype: "multipart/form-data" do %>
+        <%= file_field_tag :file, class: "form-control",
+                                 accept: ".xlsx, .xls",
+                                 data: { max_size: 5.megabytes } %>
+        <%= submit_tag "Import Excel", class: "btn btn-success" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Add New Product Button -->
+  <div class="mb-4">
+    <%= link_to 'Add New Product', new_product_path, class: 'btn btn-success' %>
+  </div>
+
+  <!-- Products Grid -->
   <div class="row">
     <% @products.each do |product| %>
-      <div class="col-md-6 col-lg-4 mb-4">
+      <div class="col-md-4 mb-4">
         <div class="card h-100">
           <div class="card-body">
-            <h5 class="card-title"><%= product.title %></h5>
-            <h6 class="card-subtitle mb-2 text-muted"><%= product.formatted_price %></h6>
-            <p class="card-text"><%= truncate(product.description, length: 150) %></p>
+            <h5 class="card-title"><%= truncate(product.title, length: 50) %></h5>
+            <h6 class="card-subtitle mb-2">₹<%= product.price %></h6>
+            <p class="card-text"><%= truncate(product.description, length: 100) %></p>
             <div class="badge bg-secondary"><%= product.category %></div>
           </div>
-          <div class="card-footer bg-white">
+          <div class="card-footer">
             <div class="d-flex justify-content-between align-items-center">
-              <%= link_to 'View Details', product_path(product), class: 'btn btn-primary btn-sm' %>
+              <%= link_to 'View Details', product_path(product), class: 'btn btn-primary' %>
               <small class="text-muted">
                 Last updated: <%= time_ago_in_words(product.last_scraped_at) %> ago
               </small>
@@ -43,11 +51,13 @@
       </div>
     <% end %>
   </div>
-<% else %>
-  <div class="alert alert-info">
-    No products found
-    <% if params[:search].present? %>
-      for "<%= params[:search] %>"
-    <% end %>
-  </div>
-<% end %>
+
+  <% if @products.empty? %>
+    <div class="alert alert-info">
+      No products found
+      <% if params[:search].present? %>
+        for "<%= params[:search] %>"
+      <% end %>
+    </div>
+  <% end %>
+</div>

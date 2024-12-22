@@ -19,6 +19,29 @@ class ProductsController < ApplicationController
     @product = Product.new
   end
 
+  def import
+    if params[:file].present?
+      begin
+        results = Product.process_urls_from_excel(params[:file])
+
+        success_message = "Successfully processed #{results[:success].count} products."
+        error_message = if results[:failed].any?
+                         "Failed to process #{results[:failed].count} URLs: #{results[:failed].map { |f| f[:url] }.join(', ')}"
+                       end
+
+        flash[:notice] = success_message
+        flash[:error] = error_message if error_message
+
+      rescue StandardError => e
+        flash[:error] = "Error processing file: #{e.message}"
+      end
+    else
+      flash[:error] = "Please select a file to upload"
+    end
+
+    redirect_to products_path
+  end
+
   def create
     begin
       @product = Product.find_or_create_by(url: product_params[:url]) do |product|
@@ -49,6 +72,14 @@ class ProductsController < ApplicationController
         format.json { render json: { error: e.message }, status: :unprocessable_entity }
       end
     end
+  end
+
+  def download_sample
+    send_file(
+      Rails.root.join("lib", "templates", "product_urls_template.xlsx"),
+      filename: "product_urls_template.xlsx",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
   end
 
   def destroy
