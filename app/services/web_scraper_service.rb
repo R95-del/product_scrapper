@@ -40,11 +40,11 @@ class WebScraperService
   }.freeze
 
   PRICE_PATTERNS = [
-    /₹\s*(\d+,?\d*)/,
-    /Rs\.?\s*(\d+,?\d*)/i,
-    /Price.*?(\d+,?\d*)/i,
-    /(\d+,?\d*).?only/i,
-    /MRP.*?(\d+,?\d*)/i
+    /₹\s*([\d,]+(?:\.\d{2})?)/,                      # Match ₹2999 or ₹2,999.00
+    /Rs\.?\s*([\d,]+(?:\.\d{2})?)/i,                 # Match Rs. 2999 or Rs. 2,999.00
+    /Rs\.([\d,]+)/i,                                 # Match Rs.2999
+    /Price.*?Rs\.?\s*([\d,]+(?:\.\d{2})?)/i,        # Match Price: Rs. 2999
+    /(\d+,?\d*(?:\.\d{2})?)(?=\s*(?:only|from))/i   # Match 2999 followed by 'only' or 'from'
   ].freeze
 
   def self.scrape(url)
@@ -93,6 +93,14 @@ class WebScraperService
   end
 
   def find_price(doc)
+    price_element = doc.css("div._30jeq3._16Jk6d").first
+    if price_element
+      price_text = price_element.text.strip
+      Rails.logger.info("Found price from element: #{price_text}")
+      return clean_and_convert_price(price_text)
+    end
+
+    # Fallback to current price patterns
     page_text = doc.text
     price_text = extract_price_from_text(page_text)
 
@@ -126,16 +134,20 @@ class WebScraperService
   end
 
   def extract_price_from_text(text)
-    PRICE_PATTERNS.each do |pattern|
-      next unless text =~ pattern
+    return nil if text.blank?
 
-      Rails.logger.info("Found price from text pattern: #{$1}")
-      return Regexp.last_match(1)
+    PRICE_PATTERNS.each do |pattern|
+      if text =~ pattern
+        price = $1
+        Rails.logger.info("Found price from text pattern: #{price}")
+        return price
+      end
     end
     nil
   end
 
   def clean_and_convert_price(price_text)
+    return 0.0 if price_text.blank?
     cleaned_price = price_text.gsub(/[^\d.]/, "")
     price = cleaned_price.to_f
     Rails.logger.info("Converted price: #{price}")

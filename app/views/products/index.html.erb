@@ -20,33 +20,34 @@
   </div>
 </div>
 
-<div class="row">
-  <% @products.each do |product| %>
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title text-truncate" title="<%= product.title %>">
-            <%= product.title %>
-          </h5>
-          <h6 class="card-subtitle mb-2 text-muted">
-            <%= number_to_currency(product.price) %>
-          </h6>
-          <p class="card-text"><%= truncate(product.description, length: 150) %></p>
-
-          <!-- Add word-wrap and max-width to the category badge -->
-          <div class="badge bg-secondary text-wrap" style="max-width: 100%; word-break: break-word;">
-            <%= product.category %>
+<% if @products.any? %>
+  <div class="row">
+    <% @products.each do |product| %>
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title"><%= product.title %></h5>
+            <h6 class="card-subtitle mb-2 text-muted"><%= product.formatted_price %></h6>
+            <p class="card-text"><%= truncate(product.description, length: 150) %></p>
+            <div class="badge bg-secondary"><%= product.category %></div>
           </div>
-        </div>
-        <div class="card-footer bg-white">
-          <div class="d-flex justify-content-between align-items-center">
-            <%= link_to 'View Details', product_path(product), class: 'btn btn-primary btn-sm' %>
-            <small class="text-muted">
-              Last updated: <%= time_ago_in_words(product.last_scraped_at) %> ago
-            </small>
+          <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <%= link_to 'View Details', product_path(product), class: 'btn btn-primary btn-sm' %>
+              <small class="text-muted">
+                Last updated: <%= time_ago_in_words(product.last_scraped_at) %> ago
+              </small>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  <% end %>
-</div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="alert alert-info">
+    No products found
+    <% if params[:search].present? %>
+      for "<%= params[:search] %>"
+    <% end %>
+  </div>
+<% end %>

@@ -15,7 +15,7 @@
       <div class="card-body">
         <h2 class="card-title mb-4">Add New Product</h2>
 
-        <%= form_for @product do |f| %>
+        <%= form_for @product, html: { class: "form" } do |f| %>
           <% if @product.errors.any? %>
             <div class="alert alert-danger">
               <h4><%= pluralize(@product.errors.count, "error") %> prohibited this product from being saved:</h4>
